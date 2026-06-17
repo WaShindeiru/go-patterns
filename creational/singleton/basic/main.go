@@ -5,29 +5,35 @@ import (
 	"sync"
 )
 
-// PROBLEM: How to create a single shared instance safely in concurrent environment?
-
 type Database struct {
 	connection string
 }
 
+// GLOBALNA INSTANCJA SINGLETONA
+// to jest miejsce gdzie “trzymamy” jedyny obiekt
 var instance *Database
 
-// NIEBEZPIECZNY: brak synchronizacji (race condition w goroutines)
-// Ten kod działa poprawnie tylko w single-threaded execution
-// W concurrency może stworzyć więcej niż jedną instancję
+// GETTER SINGLETONA (LAZY INITIALIZATION)
+// to jest główna część wzorca Singleton:
+// - sprawdza czy instancja istnieje
+// - jeśli nie → tworzy ją
+// - jeśli tak → zwraca istniejącą
 func GetInstance() *Database {
 
+	// WARUNEK SINGLETONA
+	// jeśli nie istnieje jeszcze instancja → tworzymy ją
 	if instance == nil {
 		instance = &Database{connection: "db://localhost"}
 	}
 
+	// zawsze zwracamy tę samą instancję
 	return instance
 }
 
 func main() {
 
-	// Single-threaded: działa poprawnie
+	// UŻYCIE SINGLETONA
+	// wszystkie wywołania powinny zwracać tę samą instancję
 	db1 := GetInstance()
 	db2 := GetInstance()
 
@@ -36,13 +42,13 @@ func main() {
 	fmt.Printf("db2 address: %p\n", db2)
 	fmt.Printf("db1 == db2: %v\n", db1 == db2)
 
-	// reset dla testu concurrency
+	// RESET (tylko do pokazania problemu concurrency)
 	instance = nil
 
 	var wg sync.WaitGroup
 	results := make([]*Database, 100000)
 
-	fmt.Println("\n--- Multi-threaded (data race possible) ---")
+	fmt.Println("\n--- Multi-threaded (problem concurrency) ---")
 
 	for i := range results {
 		wg.Add(1)

@@ -10,30 +10,35 @@ type Database struct {
 	connection string
 }
 
+// ATOMIC POINTER + MUTEX
+// to są mechanizmy zapewniające bezpieczeństwo w concurrency
 var (
-	instance atomic.Pointer[Database]
-	mu       sync.Mutex
+	instance atomic.Pointer[Database] // przechowuje singleton
+	mu       sync.Mutex               // chroni
 )
 
-// BEZPIECZNY: implementacja thread-safe Singleton
-// używa double-check locking + atomic pointer
-// gwarantuje tylko jedną instancję nawet w goroutines
+// BEZPIECZNA IMPLEMENTACJA SINGLETONA
+// gwarantuje: tylko jedna instancja w całym programie
 func GetInstance() *Database {
 
-	// szybka ścieżka (bez locka)
+	// SZYBKA ŚCIEŻKA (lock-free check)
+	// sprawdzamy czy instancja już istnieje
 	if p := instance.Load(); p != nil {
 		return p
 	}
 
-	// sekcja krytyczna
+	// tylko jedna goroutine może wejść tutaj naraz
 	mu.Lock()
 	defer mu.Unlock()
 
-	// ponowne sprawdzenie po wejściu do locka
+	// DOUBLE CHECK
+	// po wejściu do locka sprawdzamy ponownie
 	if instance.Load() == nil {
+		// tworzymy singleton tylko raz
 		instance.Store(&Database{connection: "db://localhost"})
 	}
 
+	// zwracamy zawsze tę samą instancję
 	return instance.Load()
 }
 
@@ -42,6 +47,8 @@ func main() {
 	var wg sync.WaitGroup
 	results := make([]*Database, 100000)
 
+	// TEST CONCURRENCY
+	// wiele goroutines próbuje dostać singleton jednocześnie
 	for i := range results {
 		wg.Add(1)
 
@@ -53,6 +60,7 @@ func main() {
 
 	wg.Wait()
 
+	// sprawdzamy czy wszystkie referencje są identyczne
 	first := results[0]
 	allSame := true
 
