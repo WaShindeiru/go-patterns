@@ -71,8 +71,6 @@ func (c *CachingStorage) Delete(key string) error {
 	return c.next.Delete(key)
 }
 
-// --- logging decorator ---
-
 type LoggingStorage struct {
 	next Storage
 }
@@ -106,8 +104,6 @@ func (l *LoggingStorage) Delete(key string) error {
 	log.Printf("[storage] Delete(%q)", key)
 	return err
 }
-
-// --- validating decorator ---
 
 type ValidatingStorage struct {
 	next Storage

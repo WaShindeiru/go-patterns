@@ -19,9 +19,9 @@ func chain(h http.Handler, middlewares ...Middleware) http.Handler {
 func logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		log.Printf("→ %s %s", r.Method, r.URL.Path)
+		log.Printf("-> %s %s", r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
-		log.Printf("← %s %s (%s)", r.Method, r.URL.Path, time.Since(start))
+		log.Printf("<- %s %s (%s)", r.Method, r.URL.Path, time.Since(start))
 	})
 }
 
