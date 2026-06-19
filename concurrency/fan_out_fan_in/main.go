@@ -5,12 +5,6 @@ import (
 	"sync"
 )
 
-// Two different pipeline branches running in parallel:
-//
-//   numbers 1-5  ──> [square workers x2] ──┐
-//                                            ├──> merge ──> results
-//   numbers 6-10 ──> [cube workers x2]   ──┘
-
 type Result struct {
 	Input  int
 	Output int
@@ -76,7 +70,7 @@ func fanOut(n int, op string, fn func(int) int, in <-chan int) <-chan Result {
 func main() {
 	smallNums := generate(1, 2, 3, 4, 5)
 	largeNums := generate(6, 7, 8, 9, 10)
-	
+
 	squares := fanOut(2, "square", func(n int) int { return n * n }, smallNums)
 	cubes := fanOut(2, "cube", func(n int) int { return n * n * n }, largeNums)
 

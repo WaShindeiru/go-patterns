@@ -27,7 +27,7 @@ func logging(next http.Handler) http.Handler {
 
 func auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer secret" {
+		if r.Header.Get("Authorization") != "test" {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return // chain stops here, next is never called
 		}
@@ -40,7 +40,7 @@ func recovery(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				log.Printf("panic: %v", err)
-				http.Error(w, "internal server error", http.StatusInternalServerError)
+				http.Error(w, "service unavailable", http.StatusServiceUnavailable)
 			}
 		}()
 		next.ServeHTTP(w, r)
